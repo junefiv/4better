@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "4better",
+    "slug": "4better",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "fourbetter",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.fourbetter.mobile"
+    },
+    "android": {
+      "package": "app.fourbetter.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#98ddde"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      ["expo-camera", { "cameraPermission": "친구들과 공유할 비공개 리캡 사진과 2초 영상을 촬영합니다.", "microphonePermission": "2초 리캡 영상의 소리를 녹음합니다.", "recordAudioAndroid": true }],
+      ["expo-notifications", { "color": "#FF6846" }]
+    ]
+  }
+}
