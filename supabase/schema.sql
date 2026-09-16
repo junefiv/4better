@@ -6,7 +6,7 @@ create type public.member_role as enum ('owner', 'member');
 create type public.agreement_decision as enum ('pending', 'agreed', 'declined');
 create type public.record_status as enum ('draft', 'pending_review', 'changes_requested', 'confirmed', 'rejected', 'expired');
 create type public.review_decision as enum ('approved', 'changes_requested', 'rejected');
-create type public.goal_kind as enum ('focus_timer', 'writing', 'drawing');
+create type public.goal_kind as enum ('reading', 'writing', 'drawing', 'cycling', 'running', 'walking', 'hiking', 'gym', 'place', 'study', 'sleep');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,

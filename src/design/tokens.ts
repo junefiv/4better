@@ -7,21 +7,23 @@ export const color = {
   ink: '#172033',
   inkMuted: '#667085',
   borderSubtle: '#E5E1D8',
-  primary: '#FF6846',
-  primaryPressed: '#EA5534',
-  primarySoft: '#FFE5DC',
-  secondary: '#A8E6D2',
-  secondarySoft: '#E7F8F2',
-  leagueDark: '#233A5A',
-  success: '#218567',
-  warning: '#D9822B',
+  blue: '#015CFC',
+  orange: '#FD4D0B',
+  lime: '#98E70D',
+  aqua: '#06DAE8',
+  blueSoft: '#DCE8FF',
+  orangeSoft: '#FFE4DA',
+  limeSoft: '#EEFBC2',
+  aquaSoft: '#D3F8FB',
+  warning: '#FD4D0B',
   danger: '#C8443A',
-  focus: '#98DDDE',
-  heritageNavy: '#2E5283',
-  heritageOrange: '#E2552D',
   white: '#FFFFFF',
   scrim: 'rgba(23,32,51,0.42)',
 } as const;
+
+export function onChip(fill: string) {
+  return fill === color.lime || fill === color.aqua ? color.ink : color.white;
+}
 
 export const space = { x1: 4, x2: 8, x3: 12, x4: 16, x5: 20, x6: 24, x8: 32, x10: 40 } as const;
 export const radius = { control: 8, input: 12, card: 16, league: 20, round: 999 } as const;

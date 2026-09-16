@@ -1,0 +1,2 @@
+-- Applied remotely as expand_goal_kind_presets + league_create_and_check_rpcs
+-- create_league / submit_goal_check / start_timer_session / pause_timer_session / finish_timer_session

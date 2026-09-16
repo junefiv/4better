@@ -1,6 +1,6 @@
 # 4better V1 Core MVP
 
-2~4명의 친구가 같은 주간 목표에 참여하고, 기록을 서로 확인하며, 매주 예상 정산과 리캡을 보는 비공개 목표 리그 앱입니다. Expo + React Native + TypeScript + Tamagui로 Android, iOS, Web을 함께 지원합니다.
+2~4명의 친구가 같은 주간 목표에 참여하고, 기록을 서로 확인하며, 매주 예상 정산과 리캡을 보는 비공개 목표 리그 앱입니다. Expo + React Native + TypeScript + React Native Paper로 Android, iOS, Web을 함께 지원합니다.
 
 ## 실행
 
@@ -12,6 +12,8 @@ npm run android
 웹 미리보기는 `npm run web`으로 실행합니다. Supabase 연결 전에는 저장 가능한 미리보기 데이터로 전체 흐름을 탐색할 수 있습니다.
 
 실제 Supabase 연결에는 `.env.example`을 복사한 `.env`에 프로젝트의 publishable/anon key를 넣으세요. URL은 프로젝트 `iaslvwciprbtcrcoafoi`로 지정되어 있습니다. 비밀 키나 service-role 키를 앱에 넣으면 안 됩니다.
+
+Android 앱의 Google 로그인은 모바일 PKCE OAuth를 사용합니다. Supabase의 Google Provider를 활성화하고 Auth URL Configuration의 Redirect URLs에 `fourbetter://auth/callback`을 추가해야 합니다. Google Cloud의 Web OAuth Client에는 Supabase가 안내하는 callback URL을 등록합니다. 로그인은 시스템 인증창에서 진행되고 완료 후 앱으로 돌아오며, 세션은 기기에 안전하게 유지됩니다.
 
 ## V1 흐름
 

@@ -1,8 +1,19 @@
-export type GoalKind = 'focus_timer' | 'writing' | 'drawing';
+export type GoalKind =
+  | 'reading'
+  | 'writing'
+  | 'drawing'
+  | 'cycling'
+  | 'running'
+  | 'walking'
+  | 'hiking'
+  | 'gym'
+  | 'place'
+  | 'study'
+  | 'sleep';
 export type LeagueState = 'none' | 'agreement' | 'waiting' | 'active' | 'last_week' | 'completed';
 export type RecordState = 'draft' | 'pending' | 'changes_requested' | 'confirmed' | 'rejected' | 'upload_failed';
 export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
-export type Route = 'auth' | 'home' | 'league' | 'create' | 'join' | 'agreement' | 'timer' | 'submit' | 'reviews' | 'results' | 'recap' | 'capture' | 'extension' | 'profile' | 'admin' | 'states';
+export type Route = 'auth' | 'home' | 'league' | 'create' | 'join' | 'agreement' | 'timer' | 'submit' | 'reviews' | 'results' | 'recap' | 'capture' | 'morning' | 'extension' | 'profile' | 'admin' | 'states';
 
 export interface Member {
   id: string;
@@ -14,11 +25,17 @@ export interface Member {
   isMe?: boolean;
 }
 
+export interface RoundResult {
+  week: number;
+  confirmed: Record<string, number>;
+}
+
 export interface League {
   id: string;
   name: string;
   kind: GoalKind;
   week: number;
+  weekId?: string;
   totalWeeks: number;
   target: number;
   unit: string;
@@ -27,6 +44,7 @@ export interface League {
   deadlineLabel: string;
   state: LeagueState;
   members: Member[];
+  rounds?: RoundResult[];
   penaltyWon: number;
   rankWeights: number[];
 }
@@ -52,6 +70,7 @@ export interface AppSnapshot {
   pushEnabled: boolean;
   blockedUsers: string[];
   league: League | null;
+  leagues: League[];
   records: GoalRecord[];
   timerStartedAt: string | null;
   timerAccumulatedSeconds: number;

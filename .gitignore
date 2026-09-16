@@ -1,6 +1,9 @@
 node_modules/
 .expo/
 .npm-cache/
+.gradle-home/
+.jtmp/
 dist-*/
+dist/
 .env
 *.log

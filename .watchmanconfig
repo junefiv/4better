@@ -1,0 +1,10 @@
+{
+  "ignore_dirs": [
+    ".git",
+    ".gradle-home",
+    ".npm-cache",
+    ".jtmp",
+    "android/.gradle",
+    "android/app/build"
+  ]
+}
