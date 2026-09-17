@@ -9,7 +9,8 @@ export type GoalKind =
   | 'gym'
   | 'place'
   | 'study'
-  | 'sleep';
+  | 'sleep'
+  | 'morning';
 export type LeagueState = 'none' | 'agreement' | 'waiting' | 'active' | 'last_week' | 'completed';
 export type RecordState = 'draft' | 'pending' | 'changes_requested' | 'confirmed' | 'rejected' | 'upload_failed';
 export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Camera, ClipboardCheck, Home, Menu, Settings, X } from 'lucide-react-native';
-import { color, elevation, layout, radius, space, type } from '../design/tokens';
+import { color, elevation, layout, radius, space, typography } from '../design/tokens';
 import { Route } from '../types/domain';
 
 const items: { route: Route; label: string; icon: typeof Home }[] = [
@@ -30,6 +30,6 @@ const styles = StyleSheet.create({
   host: { position: 'absolute', bottom: 24, alignItems: 'flex-end', gap: space.x2, zIndex: 20 },
   menu: { width: 168, backgroundColor: color.surface, borderRadius: radius.card, padding: space.x2, borderWidth: 1, borderColor: color.borderSubtle, ...elevation },
   item: { minHeight: 44, borderRadius: radius.control, paddingHorizontal: space.x3, flexDirection: 'row', alignItems: 'center', gap: space.x3 }, selected: { backgroundColor: color.blue },
-  itemText: { color: color.ink, ...type.label }, selectedText: { color: color.white },
+  itemText: { color: color.ink, ...typography.tab }, selectedText: { color: color.white, ...typography.tab },
   trigger: { width: 54, height: 54, borderRadius: 18, backgroundColor: color.blue, alignItems: 'center', justifyContent: 'center', ...elevation }, pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
 });

@@ -6,6 +6,9 @@
   "scripts": {
     "start": "expo start --go --tunnel",
     "start:lan": "expo start --go",
+    "start:usb": "expo start --go",
+    "preview:usb": "node scripts/usb-preview.cjs open",
+    "adb:devices": "node scripts/usb-preview.cjs devices",
     "start:dev-client": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -19,6 +22,7 @@
     "expo-camera": "~57.0.5",
     "expo-dev-client": "~57.0.19",
     "expo-device": "~57.0.2",
+    "expo-font": "~57.0.4",
     "expo-haptics": "~57.0.3",
     "expo-linking": "~57.0.10",
     "expo-notifications": "~57.0.19",

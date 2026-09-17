@@ -6,6 +6,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useAppModel } from './src/state/useAppModel';
 import { Route } from './src/types/domain';
 import { color } from './src/design/tokens';
+import { useAppFonts } from './src/design/useAppFonts';
 import { paperTheme } from './src/theme/paper';
 import { FloatingMenu } from './src/components/FloatingMenu';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -14,6 +15,8 @@ import { CaptureScreen } from './src/screens/CaptureScreen';
 import { MorningScreen } from './src/screens/MorningScreen';
 
 export default function App() {
+  const [fontsLoaded] = useAppFonts();
+  if (!fontsLoaded) return <View style={styles.boot} />;
   return (
     <SafeAreaProvider>
       <PaperProvider theme={paperTheme}>
@@ -63,4 +66,8 @@ function AppRouter() {
   return <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}><StatusBar style="dark" /><View style={styles.app}>{screen}{showMenu ? <FloatingMenu current={route} navigate={navigate} /> : null}</View></SafeAreaView>;
 }
 
-const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: color.canvas }, app: { flex: 1, backgroundColor: color.canvas } });
+const styles = StyleSheet.create({
+  boot: { flex: 1, backgroundColor: color.canvas },
+  safe: { flex: 1, backgroundColor: color.canvas },
+  app: { flex: 1, backgroundColor: color.canvas },
+});

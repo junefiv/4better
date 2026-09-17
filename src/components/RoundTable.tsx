@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import { League } from '../types/domain';
-import { color, type } from '../design/tokens';
+import { color, typography } from '../design/tokens';
 import { withLeagueRounds } from '../data/seed';
 import { SessionRound } from './SessionProgress';
 
@@ -9,7 +9,7 @@ export function leagueRounds(league: League) {
   return [...(withLeagueRounds(league).rounds ?? [])].sort((a, b) => a.week - b.week);
 }
 
-export function RoundTable({ league, onWeekChange, mineOnly = false }: { league: League; onWeekChange?: (week: number) => void; mineOnly?: boolean }) {
+export function RoundTable({ league, onWeekChange, mineOnly = false, visual = 'default' }: { league: League; onWeekChange?: (week: number) => void; mineOnly?: boolean; visual?: 'default' | 'card' }) {
   const rounds = useMemo(() => leagueRounds(league), [league]);
   const startIndex = Math.max(0, rounds.findIndex((round) => round.week === league.week));
   const [page, setPage] = useState(startIndex < 0 ? rounds.length - 1 : startIndex);
@@ -78,12 +78,12 @@ export function RoundTable({ league, onWeekChange, mineOnly = false }: { league:
         <Animated.View style={[styles.track, { width: width * rounds.length, transform: [{ translateX: shift }] }]}>
           {rounds.map((round) => (
             <View key={round.week} style={{ width }}>
-              <SessionRound league={league} round={round} mineOnly={mineOnly} />
+              <SessionRound league={league} round={round} mineOnly={mineOnly} visual={visual} />
             </View>
           ))}
         </Animated.View>
       ) : (
-        <SessionRound league={league} round={rounds[page] ?? rounds[0]} mineOnly={mineOnly} />
+        <SessionRound league={league} round={rounds[page] ?? rounds[0]} mineOnly={mineOnly} visual={visual} />
       )}
     </View>
   );
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   box: { overflow: 'hidden' },
   track: { flexDirection: 'row' },
   meta: { alignItems: 'flex-end', gap: 4 },
-  round: { color: color.inkMuted, ...type.caption, fontWeight: '800' },
+  round: { color: color.inkMuted, ...typography.label },
   dots: { flexDirection: 'row', gap: 4 },
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: color.borderSubtle },
   dotOn: { backgroundColor: color.blue, width: 12 },

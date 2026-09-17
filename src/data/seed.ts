@@ -129,7 +129,7 @@ export const previewCyclingLeague: League = {
 export const previewMorningLeague: League = {
   id: 'preview-league-morning',
   name: '7시 기상',
-  kind: 'sleep',
+  kind: 'morning',
   week: 1,
   totalWeeks: 4,
   target: 5,

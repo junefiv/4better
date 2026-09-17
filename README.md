@@ -9,6 +9,8 @@ npm install
 npm run android
 ```
 
+폰 프리뷰 명령은 `docs/프리뷰_연결.md`.
+
 웹 미리보기는 `npm run web`으로 실행합니다. Supabase 연결 전에는 저장 가능한 미리보기 데이터로 전체 흐름을 탐색할 수 있습니다.
 
 실제 Supabase 연결에는 `.env.example`을 복사한 `.env`에 프로젝트의 publishable/anon key를 넣으세요. URL은 프로젝트 `iaslvwciprbtcrcoafoi`로 지정되어 있습니다. 비밀 키나 service-role 키를 앱에 넣으면 안 됩니다.

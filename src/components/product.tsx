@@ -1,28 +1,63 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AlertCircle, Camera, Check, ChevronRight, Clock3, MessageCircleQuestion, RotateCcw } from 'lucide-react-native';
 import { GoalRecord, League, Member } from '../types/domain';
-import { color, onChip, radius, space, type } from '../design/tokens';
+import { color, leagueCard, onChip, radius, space, typography } from '../design/tokens';
 import { goalChip, goalLabel, sessionQuickStart } from '../data/goals';
 import { StatusBadge } from './ui';
-import { RoundMeta, RoundTable } from './RoundTable';
+import { leagueRounds, RoundTable } from './RoundTable';
+
+function mineWeekProgress(league: League, week: number) {
+  const rounds = leagueRounds(league);
+  const round = rounds.find((item) => item.week === week) ?? rounds[0];
+  if (!round || !league.target) return 0;
+  const member = league.members.find((item) => item.isMe) ?? league.members.find((item) => item.id === 'me');
+  if (!member) return 0;
+  const value = round.confirmed[member.id] ?? 0;
+  return Math.min(100, Math.round((value / league.target) * 100));
+}
 
 export function LeagueCard({ league, onPress, onStart }: { league: League; onPress: () => void; onStart?: () => void }) {
   const [week, setWeek] = useState(league.week);
   const start = sessionQuickStart(league.kind);
   const startable = Boolean(onStart) && (league.state === 'active' || league.state === 'last_week');
+  const chip = goalChip(league.kind);
+  const progress = useMemo(() => mineWeekProgress(league, week), [league, week]);
+
   return (
     <View style={styles.league}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`${goalLabel(league.kind)} ${league.name} 리그 열기`} onPress={onPress} style={({ pressed }) => [styles.titleRow, pressed && styles.pressed]}>
-        <View style={[styles.goalBadge, { backgroundColor: goalChip(league.kind).soft }]}><Text style={styles.goalBadgeText}>{goalLabel(league.kind)}</Text></View>
-        <Text style={styles.leagueName} numberOfLines={1}>{league.name}</Text>
-        <RoundMeta league={league} week={week} />
+      <View style={styles.metaRow}>
+        <View style={[styles.categoryPill, { backgroundColor: chip.soft }]}>
+          <View style={[styles.categoryDot, { backgroundColor: chip.fill }]} />
+          <Text style={[styles.categoryText, { color: chip.fill }]}>{goalLabel(league.kind)}</Text>
+        </View>
+        <Text style={styles.weekMeta}>{week}주차 / 총 {league.totalWeeks}주</Text>
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${league.name} 리그 열기`}
+        onPress={onPress}
+        style={({ pressed }) => [pressed && styles.pressed]}
+      >
+        <Text style={styles.leagueName} numberOfLines={2}>{league.name}</Text>
       </Pressable>
-      <RoundTable league={league} onWeekChange={setWeek} mineOnly />
+
+      <View style={styles.graphBlock}>
+        <View style={styles.graphHead}>
+          <Text style={[styles.achievement, { color: chip.fill }]}>{progress}%</Text>
+        </View>
+        <RoundTable league={league} onWeekChange={setWeek} mineOnly visual="card" />
+      </View>
+
       {startable ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={`${league.name} ${start.actionLabel}`} onPress={onStart} style={({ pressed }) => [styles.quickStart, pressed && styles.pressed]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${league.name} ${start.actionLabel}`}
+          onPress={onStart}
+          style={({ pressed }) => [styles.quickStart, pressed && styles.pressed]}
+        >
           <Text style={styles.quickStartText}>{start.actionLabel}</Text>
-          <ChevronRight size={18} color={color.white} strokeWidth={2.4} />
         </Pressable>
       ) : null}
     </View>
@@ -49,11 +84,35 @@ export function ReviewActions({ onApprove, onQuestion, onReject }: { onApprove: 
 
 const styles = StyleSheet.create({
   flex: { flex: 1 }, between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.x2 },
-  member: { flexDirection: 'row', alignItems: 'center', gap: space.x3, paddingVertical: space.x2 }, avatar: { width: 34, height: 34, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' }, initial: { color: color.ink, fontSize: 12, fontWeight: '800' }, name: { color: color.ink, ...type.label }, value: { color: color.inkMuted, ...type.caption }, bar: { height: 5, backgroundColor: color.surfaceMuted, borderRadius: 3, overflow: 'hidden', marginTop: 7 }, fill: { height: '100%', backgroundColor: color.blue, borderRadius: 3 },
-  confirmation: { minHeight: 88, flexDirection: 'row', alignItems: 'center', gap: space.x3, paddingVertical: space.x4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.borderSubtle }, note: { color: color.inkMuted, ...type.body, marginTop: 4 }, meta: { color: color.orange, ...type.caption, marginTop: 4 },
-  recap: { borderRadius: radius.league, overflow: 'hidden', backgroundColor: color.surface, borderWidth: 1, borderColor: color.borderSubtle }, recapImage: { width: '100%', height: 156 }, recapEmpty: { height: 140, backgroundColor: color.aquaSoft, justifyContent: 'center', alignItems: 'center', gap: space.x2 }, recapEmptyText: { color: color.ink, ...type.label }, recapCopy: { padding: space.x4 }, recapTitle: { color: color.ink, ...type.heading }, recapMeta: { color: color.inkMuted, ...type.caption, marginTop: 4 }, recapLink: { flexDirection: 'row', alignItems: 'center', marginTop: space.x3 }, recapLinkText: { color: color.ink, ...type.label },
-  reviewActions: { gap: space.x2 }, reviewPrimary: { minHeight: 52, borderRadius: radius.input, backgroundColor: color.lime, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x2 }, reviewPrimaryText: { color: color.ink, ...type.label }, reviewSecondary: { minHeight: 48, borderRadius: radius.input, borderWidth: 1, borderColor: color.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x2 }, reviewSecondaryText: { color: color.ink, ...type.label }, reject: { minHeight: 44, alignItems: 'center', justifyContent: 'center' }, rejectText: { color: color.danger, ...type.label }, pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
-  league: { backgroundColor: color.surface, borderWidth: 1, borderColor: color.borderSubtle, borderRadius: radius.league, padding: space.x5, gap: space.x3 }, titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.x2 }, goalBadge: { backgroundColor: color.blueSoft, borderRadius: radius.control, paddingHorizontal: 8, paddingVertical: 5 }, goalBadgeText: { color: color.ink, ...type.caption, fontWeight: '800' }, leagueName: { flex: 1, minWidth: 0, color: color.ink, ...type.heading },
-  quickStart: { minHeight: 48, borderRadius: radius.input, backgroundColor: color.orange, paddingHorizontal: space.x4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x1 },
-  quickStartText: { color: color.white, ...type.label },
+  member: { flexDirection: 'row', alignItems: 'center', gap: space.x3, paddingVertical: space.x2 }, avatar: { width: 34, height: 34, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' }, initial: { color: color.ink, ...typography.label }, name: { color: color.ink, ...typography.label }, value: { color: color.inkMuted, ...typography.caption }, bar: { height: 5, backgroundColor: color.surfaceMuted, borderRadius: 3, overflow: 'hidden', marginTop: 7 }, fill: { height: '100%', backgroundColor: color.blue, borderRadius: 3 },
+  confirmation: { minHeight: 88, flexDirection: 'row', alignItems: 'center', gap: space.x3, paddingVertical: space.x4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.borderSubtle }, note: { color: color.inkMuted, ...typography.body, marginTop: 4 }, meta: { color: color.orange, ...typography.caption, marginTop: 4 },
+  recap: { borderRadius: radius.league, overflow: 'hidden', backgroundColor: color.surface, borderWidth: 1, borderColor: color.borderSubtle }, recapImage: { width: '100%', height: 156 }, recapEmpty: { height: 140, backgroundColor: color.aquaSoft, justifyContent: 'center', alignItems: 'center', gap: space.x2 }, recapEmptyText: { color: color.ink, ...typography.label }, recapCopy: { padding: space.x4 }, recapTitle: { color: color.ink, ...typography.sectionTitle }, recapMeta: { color: color.inkMuted, ...typography.caption, marginTop: 4 }, recapLink: { flexDirection: 'row', alignItems: 'center', marginTop: space.x3 }, recapLinkText: { color: color.ink, ...typography.label },
+  reviewActions: { gap: space.x2 }, reviewPrimary: { minHeight: 52, borderRadius: radius.input, backgroundColor: color.lime, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x2 }, reviewPrimaryText: { color: color.ink, ...typography.button }, reviewSecondary: { minHeight: 48, borderRadius: radius.input, borderWidth: 1, borderColor: color.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x2 }, reviewSecondaryText: { color: color.ink, ...typography.button }, reject: { minHeight: 44, alignItems: 'center', justifyContent: 'center' }, rejectText: { color: color.danger, ...typography.button }, pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
+  league: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.borderSubtle,
+    borderRadius: leagueCard.radius,
+    padding: leagueCard.padding,
+    gap: leagueCard.gapTight,
+  },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.x3 },
+  categoryPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.round, flexShrink: 1 },
+  categoryDot: { width: 7, height: 7, borderRadius: 4 },
+  categoryText: { ...typography.chip },
+  weekMeta: { color: color.inkMuted, ...typography.label, flexShrink: 0 },
+  leagueName: { color: color.ink, ...typography.cardTitle },
+  graphBlock: { gap: leagueCard.gapTight, marginTop: leagueCard.gapLoose - leagueCard.gapTight },
+  graphHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'flex-end' },
+  achievement: { ...typography.cardAchievement },
+  quickStart: {
+    minHeight: leagueCard.ctaHeight,
+    borderRadius: radius.input,
+    backgroundColor: leagueCard.ctaBackground,
+    paddingHorizontal: space.x4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: leagueCard.gapLoose - leagueCard.gapTight,
+  },
+  quickStartText: { color: leagueCard.ctaForeground, ...typography.cardCta },
 });

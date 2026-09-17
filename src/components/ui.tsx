@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useRef } from 'react';
 import { AccessibilityInfo, Animated, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text as RNText, useWindowDimensions, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { AlertCircle, ArrowLeft, Bell, Check, ChevronRight, LoaderCircle, Plus } from 'lucide-react-native';
-import { color, elevation, layout, radius, space, type } from '../design/tokens';
+import { color, elevation, layout, radius, space, typography } from '../design/tokens';
 
 type Icon = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
 
@@ -39,8 +39,8 @@ export function AppHeader({ title = '4better', subtitle, onBack, onNotifications
     <View style={styles.header}>
       <IconButton label="뒤로" icon={ArrowLeft} onPress={onBack} />
       <View style={styles.flex}>
-        <Text style={[type.heading, styles.ink]}>{title}</Text>
-        {subtitle ? <Text style={[type.caption, styles.inkMuted]}>{subtitle}</Text> : null}
+        <Text style={[typography.sectionTitle, styles.ink]}>{title}</Text>
+        {subtitle ? <Text style={[typography.caption, styles.inkMuted]}>{subtitle}</Text> : null}
       </View>
       {onNew ? <IconButton label="새 리그" icon={Plus} onPress={onNew} /> : null}
       {onNotifications ? <IconButton label="알림" icon={Bell} onPress={onNotifications} /> : null}
@@ -75,12 +75,18 @@ export function PrimaryAction({ label, onPress, icon: IconComponent = ChevronRig
   );
 }
 
-export function SectionHeader({ title, detail, action, onAction }: { title: string; detail?: string; action?: string; onAction?: () => void }) {
+export function SectionHeader({ title, detail, onDetailPress, action, onAction }: { title: string; detail?: string; onDetailPress?: () => void; action?: string; onAction?: () => void }) {
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.flex}>
-        <Text style={[type.heading, styles.ink]}>{title}</Text>
-        {detail ? <Text style={[type.caption, styles.inkMuted]}>{detail}</Text> : null}
+        <Text style={[typography.sectionTitle, styles.ink]}>{title}</Text>
+        {detail && onDetailPress ? (
+          <Pressable accessibilityRole="button" accessibilityLabel={detail} onPress={onDetailPress} hitSlop={8} style={styles.detailLink}>
+            <RNText style={[styles.link, styles.detailLinkText]}>{detail}</RNText>
+          </Pressable>
+        ) : detail ? (
+          <Text style={[typography.caption, styles.inkMuted]}>{detail}</Text>
+        ) : null}
       </View>
       {action ? <Pressable accessibilityRole="button" onPress={onAction} hitSlop={8}><RNText style={styles.link}>{action}</RNText></Pressable> : null}
     </View>
@@ -93,7 +99,7 @@ export function StatusBadge({ label, tone = 'neutral', icon: IconComponent }: { 
   return (
     <View style={[styles.badge, { backgroundColor }]}>
       {IconComponent ? <IconComponent size={13} color={foreground} /> : null}
-      <Text style={[type.caption, { color: foreground, fontWeight: '700' }]}>{label}</Text>
+      <Text style={[typography.label, { color: foreground }]}>{label}</Text>
     </View>
   );
 }
@@ -104,22 +110,24 @@ export function InlineNotice({ title, body, tone = 'info', action, onAction }: {
     <View style={[styles.notice, { borderLeftColor: accent }]}>
       <AlertCircle size={19} color={accent} />
       <View style={styles.flex}>
-        <Text style={[type.label, styles.ink]}>{title}</Text>
-        {body ? <Text style={[type.caption, styles.inkMuted]}>{body}</Text> : null}
+        <Text style={[typography.label, styles.ink]}>{title}</Text>
+        {body ? <Text style={[typography.caption, styles.inkMuted]}>{body}</Text> : null}
       </View>
       {action ? <Pressable onPress={onAction}><RNText style={[styles.link, { color: accent }]}>{action}</RNText></Pressable> : null}
     </View>
   );
 }
 
-export function EmptyState({ title, body, action, onAction }: { title: string; body: string; action?: string; onAction?: () => void }) {
+export function EmptyState({ title, body, action, onAction, icon }: { title: string; body: string; action?: string; onAction?: () => void; icon?: ReactNode }) {
   return (
     <View style={styles.empty}>
-      <View style={styles.emptyIcon}>
-        <Check size={21} color={color.blue} />
-      </View>
-      <Text style={[type.heading, styles.ink, styles.center]}>{title}</Text>
-      <Text style={[type.body, styles.inkMuted, styles.center, styles.emptyBody]}>{body}</Text>
+      {icon ?? (
+        <View style={styles.emptyIcon}>
+          <Check size={21} color={color.blue} />
+        </View>
+      )}
+      <Text style={[typography.sectionTitle, styles.ink, styles.center]}>{title}</Text>
+      <Text style={[typography.body, styles.inkMuted, styles.center, styles.emptyBody]}>{body}</Text>
       {action && onAction ? <PrimaryAction compact label={action} onPress={onAction} /> : null}
     </View>
   );
@@ -155,6 +163,8 @@ const styles = StyleSheet.create({
   inkMuted: { color: color.inkMuted },
   center: { textAlign: 'center' },
   sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: space.x4, marginBottom: space.x3 },
+  detailLink: { alignSelf: 'flex-start', marginTop: 2 },
+  detailLinkText: { color: color.blue, ...typography.caption },
   badge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: space.x1, paddingHorizontal: space.x2, paddingVertical: 5, borderRadius: radius.control },
   notice: { flexDirection: 'row', alignItems: 'flex-start', gap: space.x3, padding: space.x4, backgroundColor: color.surface, borderLeftWidth: 3 },
   empty: { alignItems: 'center', gap: space.x3, paddingVertical: space.x10, paddingHorizontal: space.x5 },
@@ -164,8 +174,8 @@ const styles = StyleSheet.create({
   iconButtonFilled: { backgroundColor: color.blue, borderColor: color.blue },
   action: { minHeight: 52, borderWidth: 1, borderRadius: radius.input, paddingHorizontal: space.x4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.x2 },
   actionCompact: { alignSelf: 'flex-start', minHeight: 44 },
-  actionText: { ...type.label },
-  link: { color: color.ink, ...type.label },
+  actionText: { ...typography.button },
+  link: { color: color.ink, ...typography.label },
   pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
 });
 

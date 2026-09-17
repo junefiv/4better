@@ -7,6 +7,7 @@ import { AppState, Platform } from 'react-native';
 import { Session } from '@supabase/supabase-js';
 import { initialSnapshot, normalizeSnapshot } from '../data/seed';
 import { AppSnapshot, GoalRecord, League, LeagueState, ReviewDecision } from '../types/domain';
+import { PREVIEW_LOGIN_EMAIL, previewLoginEmail } from '../lib/previewAuth';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { createRemoteLeague, fetchMyLeagues, finishRemoteTimer, isRemoteLeague, pauseRemoteTimer, startRemoteTimer, submitRemoteCheck } from '../lib/remoteLeague';
 
@@ -39,13 +40,14 @@ export function useAppModel() {
         .eq('id', session.user.id)
         .maybeSingle();
       if (!active) return;
-      const metadataName = session.user.user_metadata?.full_name ?? session.user.user_metadata?.name;
-      const needsProfile = !profile?.nickname || profile.nickname === '새 멤버';
+      const metadataName = session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? session.user.user_metadata?.nickname;
+      const isPreview = session.user.email === PREVIEW_LOGIN_EMAIL;
+      const needsProfile = !isPreview && (!profile?.nickname || profile.nickname === '새 멤버');
       if (needsProfile) {
         setPendingNickname(metadataName ?? '');
         setNeedsNicknameSetup(true);
       }
-      const nickname = profile?.nickname ?? fallbackNickname ?? metadataName ?? '새 멤버';
+      const nickname = profile?.nickname ?? fallbackNickname ?? metadataName ?? (isPreview ? '미리보기' : '새 멤버');
       let leagues: League[] = [];
       if (!needsProfile) {
         try {
@@ -125,6 +127,46 @@ export function useAppModel() {
     return { ...next, leagues };
   }), []);
   const signIn = (nickname: string) => update({ nickname: nickname.trim() || '새 멤버', signedIn: true });
+  const signInPreview = async (idOrEmail: string, password: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase 연결 정보가 없어 미리보기 로그인을 할 수 없습니다.');
+    }
+    const email = previewLoginEmail(idOrEmail);
+    if (!email) throw new Error('미리보기 아이디를 확인해 주세요.');
+    if (!password) throw new Error('비밀번호를 입력해 주세요.');
+    const { data: auth, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        throw new Error('미리보기 이메일이 아직 확인되지 않았어요. Supabase Auth에서 Confirm email을 끄거나 이 계정을 확인 처리해 주세요.');
+      }
+      if (error.message.toLowerCase().includes('invalid login')) {
+        throw new Error('아이디 또는 비밀번호가 맞지 않아요.');
+      }
+      throw error;
+    }
+    const user = auth.user ?? auth.session?.user;
+    if (!user) throw new Error('미리보기 계정 정보를 받지 못했습니다.');
+    setAuthUserId(user.id);
+    setPendingNickname(null);
+    setNeedsNicknameSetup(false);
+    const { data: profile } = await supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle();
+    const nickname = profile?.nickname && profile.nickname !== '새 멤버' ? profile.nickname : '미리보기';
+    if (!profile?.nickname || profile.nickname === '새 멤버') {
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        nickname,
+        updated_at: new Date().toISOString(),
+      });
+    }
+    let leagues: League[] = [];
+    try {
+      leagues = await fetchMyLeagues(user.id);
+    } catch {
+      setServerError('리그를 불러오지 못했어요.');
+    }
+    update({ nickname, signedIn: true, leagues, league: leagues[0] ?? null, records: [] });
+    return { authenticated: true as const };
+  };
   const signInSocial = async () => {
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('Supabase 연결 정보가 없어 Google 로그인을 시작할 수 없습니다.');
@@ -221,7 +263,7 @@ export function useAppModel() {
     }));
     return leagues;
   }, [authUserId]);
-  const createLeague = async (input: { name: string; kind: League['kind']; weeklyTarget: number; unit: string; plannedWeeks: number }) => {
+  const createLeague = async (input: { name: string; kind: League['kind']; weeklyTarget: number; unit: string; plannedWeeks: number; rankWeights: number[] }) => {
     const id = await createRemoteLeague(input);
     const leagues = await refreshLeagues(id);
     return leagues.find((item) => item.id === id) ?? null;
@@ -283,7 +325,7 @@ export function useAppModel() {
   const retryUpload = (id: string) => setData((current) => ({ ...current, records: current.records.map((r) => r.id === id ? { ...r, state: 'pending' } : r) }));
   const setOffline = (offline: boolean) => update({ offline });
 
-  return { data, hydrated, serverError, authUserId, pendingNickname, needsNicknameSetup, clearError: () => setServerError(null), timerSeconds, signIn, signInSocial, completeSocialProfile, signOut, deleteAccount, update, setLeagueState, selectLeague, refreshLeagues, createLeague, submitCheck, startTimer, pauseTimer, finishTimer, submitRecord, createCreativeRecord, reviewRecord, requestPush, retryUpload, setOffline };
+  return { data, hydrated, serverError, authUserId, pendingNickname, needsNicknameSetup, clearError: () => setServerError(null), timerSeconds, signIn, signInPreview, signInSocial, completeSocialProfile, signOut, deleteAccount, update, setLeagueState, selectLeague, refreshLeagues, createLeague, submitCheck, startTimer, pauseTimer, finishTimer, submitRecord, createCreativeRecord, reviewRecord, requestPush, retryUpload, setOffline };
 }
 
 export type AppModel = ReturnType<typeof useAppModel>;

@@ -3,7 +3,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { Bell, Check } from 'lucide-react-native';
 import { AppModel } from '../state/useAppModel';
 import { Route } from '../types/domain';
-import { color, radius, space, type } from '../design/tokens';
+import { color, radius, space, typography } from '../design/tokens';
 import { AppHeader, InlineNotice, PrimaryAction, ScreenContainer } from '../components/ui';
 import { isRemoteLeague, remoteErrorMessage } from '../lib/remoteLeague';
 
@@ -28,10 +28,10 @@ export function MorningScreen({ model, back, navigate }: { model: AppModel; back
       <AppHeader title="기상 체크" subtitle={league?.name ?? '아침형 인간'} onBack={back} />
       <View style={styles.panel}>
         {phase === 'alarm' ? <Bell size={28} color={color.aqua} /> : <Check size={28} color={color.lime} />}
-        <Text style={styles.title}>
+        <Text style={styles.panelTitle}>
           {phase === 'alarm' ? '알람을 끄면 체크가 시작돼요' : phase === 'steps' ? '이제 몇 걸음 걸어 주세요' : phase === 'awake' ? '완전히 일어났어요' : '다시 잠든 것으로 봐요'}
         </Text>
-        <Text style={styles.body}>
+        <Text style={styles.panelBody}>
           {phase === 'alarm'
             ? '알람만 끄면 아직 일어난 것이 아닙니다. 끈 뒤에 걸어야 완료됩니다.'
             : phase === 'steps'
@@ -56,7 +56,7 @@ export function MorningScreen({ model, back, navigate }: { model: AppModel; back
 
 const styles = StyleSheet.create({
   panel: { backgroundColor: color.ink, borderRadius: radius.league, padding: space.x6, gap: space.x3, marginBottom: space.x5 },
-  title: { color: color.white, ...type.title },
-  body: { color: '#CBD5E1', ...type.body },
+  panelTitle: { color: color.white, ...typography.sectionTitle },
+  panelBody: { color: '#CBD5E1', ...typography.bodyMedium },
   actions: { gap: space.x3 },
 });

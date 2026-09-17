@@ -34,7 +34,8 @@
           "color": "#FD4D0B"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ]
   }
 }

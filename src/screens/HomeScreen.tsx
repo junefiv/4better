@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { AppModel } from '../state/useAppModel';
 import { League, Route } from '../types/domain';
-import { color, radius, space, type } from '../design/tokens';
+import { color, radius, space, typography } from '../design/tokens';
 import { AppHeader, EmptyState, InlineNotice, ScreenContainer, Skeleton } from '../components/ui';
 import { LeagueCard } from '../components/product';
 import { sessionQuickStart } from '../data/goals';
@@ -53,20 +53,24 @@ export function HomeScreen({ model, navigate }: { model: AppModel; navigate: (ro
         </Pressable>
       </View>
 
-      <Pressable accessibilityRole="button" accessibilityLabel="새 리그 만들기" onPress={() => navigate('create')} style={({ pressed }) => [styles.add, pressed && styles.addPressed]}>
-        <Plus size={22} color={color.blue} strokeWidth={2.4} />
-      </Pressable>
-
       {visibleLeagues.length ? (
-        <View style={styles.list}>
-          {visibleLeagues.map((league) => <LeagueCard key={league.id} league={league} onPress={() => openLeague(league)} onStart={() => startCheck(league)} />)}
-        </View>
+        <>
+          <Pressable accessibilityRole="button" accessibilityLabel="새 리그 만들기" onPress={() => navigate('create')} style={({ pressed }) => [styles.add, pressed && styles.addPressed]}>
+            <Plus size={22} color={color.blue} strokeWidth={2.4} />
+          </Pressable>
+          <View style={styles.list}>
+            {visibleLeagues.map((league) => <LeagueCard key={league.id} league={league} onPress={() => openLeague(league)} onStart={() => startCheck(league)} />)}
+          </View>
+        </>
       ) : (
         <EmptyState
           title={tab === 'active' ? '진행 중인 리그가 없어요' : '종료된 리그가 없어요'}
           body={tab === 'active' ? (model.authUserId ? '리그를 만들면 이번 주 체크가 바로 시작돼요. 초대는 나중에 붙일게요.' : 'Google로 로그인하면 만든 리그가 저장됩니다.') : '끝난 리그는 여기에 모아 둘게요.'}
-          action={tab === 'active' ? '새 리그 시작' : undefined}
-          onAction={tab === 'active' ? () => navigate('create') : undefined}
+          icon={
+            <Pressable accessibilityRole="button" accessibilityLabel="새 리그 만들기" onPress={() => navigate('create')} style={({ pressed }) => [styles.add, styles.emptyAdd, pressed && styles.addPressed]}>
+              <Plus size={22} color={color.blue} strokeWidth={2.4} />
+            </Pressable>
+          }
         />
       )}
     </ScreenContainer>
@@ -74,14 +78,15 @@ export function HomeScreen({ model, navigate }: { model: AppModel; navigate: (ro
 }
 
 const styles = StyleSheet.create({
-  greeting: { color: color.ink, ...type.heading, marginBottom: space.x4 },
+  greeting: { color: color.ink, ...typography.screenTitle, marginBottom: space.x4 },
   toggle: { flexDirection: 'row', backgroundColor: color.surfaceMuted, borderRadius: radius.input, padding: 4, marginBottom: space.x4 },
   add: { width: 44, height: 44, borderRadius: 22, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', backgroundColor: color.surface, borderWidth: 1, borderColor: color.borderSubtle, marginBottom: space.x5 },
+  emptyAdd: { marginBottom: 0 },
   addPressed: { transform: [{ scale: 0.96 }], opacity: 0.88 },
   toggleItem: { flex: 1, minHeight: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   toggleItemOn: { backgroundColor: color.surface },
-  toggleText: { color: color.inkMuted, ...type.label },
-  toggleTextOn: { color: color.ink },
+  toggleText: { color: color.inkMuted, ...typography.tab },
+  toggleTextOn: { color: color.ink, ...typography.tab },
   toggleMark: { width: 22, height: 3, borderRadius: 2, marginTop: 4 },
   toggleMarkOrange: { backgroundColor: color.orange },
   toggleMarkBlue: { backgroundColor: color.blue },

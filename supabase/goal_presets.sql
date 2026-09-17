@@ -9,3 +9,4 @@ alter type public.goal_kind add value if not exists 'gym';
 alter type public.goal_kind add value if not exists 'place';
 alter type public.goal_kind add value if not exists 'study';
 alter type public.goal_kind add value if not exists 'sleep';
+alter type public.goal_kind add value if not exists 'morning';

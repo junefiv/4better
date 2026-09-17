@@ -1,6 +1,7 @@
 import { GoalKind, League, LeagueState, Member, RoundResult } from '../types/domain';
 import { color } from '../design/tokens';
-import { isTimeGoal, migrateGoalKind } from '../data/goals';
+import { isTimeGoal, migrateGoalKind, persistTarget } from '../data/goals';
+import { DEFAULT_RANK_WEIGHTS, toRankBps } from './rankSplit';
 import { supabase } from './supabase';
 
 const MEMBER_COLORS = [color.blue, color.orange, color.lime, color.aqua];
@@ -53,6 +54,8 @@ export function remoteErrorMessage(error: unknown) {
   if (message.includes('WEEK_NOT_FOUND') || message.includes('NOT_A_MEMBER')) return '이 리그에서 체크할 수 없어요.';
   if (message.includes('TIMER_NOT_RUNNING')) return '진행 중인 타이머가 없어요.';
   if (message.includes('WEEK_FINALIZED')) return '이미 끝난 주차예요.';
+  if (message.includes('INVALID_RANK_WEIGHTS')) return '순위 분배는 합이 100%가 되어야 해요.';
+  if (message.includes('RANK_WEIGHTS_UNSUPPORTED')) return '기본이 아닌 분배를 저장하려면 supabase/create_league_rank_weights.sql을 먼저 실행해 주세요.';
   return message || '요청을 처리하지 못했어요.';
 }
 
@@ -85,18 +88,30 @@ export async function createRemoteLeague(input: {
   weeklyTarget: number;
   unit: string;
   plannedWeeks: number;
+  rankWeights?: number[];
 }) {
   if (!supabase) throw new Error('NOT_AUTHENTICATED');
-  const { data, error } = await supabase.rpc('create_league', {
+  const payload = {
     p_name: input.name,
     p_goal_kind: input.kind,
     p_weekly_target: input.weeklyTarget,
     p_unit: input.unit,
     p_planned_weeks: input.plannedWeeks,
     p_penalty_won: 10000,
-  });
-  if (error) throw error;
-  return String(data);
+  };
+  const withRanks = { ...payload, p_rank_weights_bps: toRankBps(input.rankWeights ?? DEFAULT_RANK_WEIGHTS) };
+  const first = await supabase.rpc('create_league', withRanks);
+  if (!first.error) return String(first.data);
+  if (!isMissingRankArg(first.error.message)) throw first.error;
+  const requested = input.rankWeights ?? DEFAULT_RANK_WEIGHTS;
+  if (requested.join() !== DEFAULT_RANK_WEIGHTS.join()) throw new Error('RANK_WEIGHTS_UNSUPPORTED');
+  const fallback = await supabase.rpc('create_league', payload);
+  if (fallback.error) throw fallback.error;
+  return String(fallback.data);
+}
+
+function isMissingRankArg(message: string) {
+  return message.includes('p_rank_weights_bps') || message.includes('schema cache') || message.includes('PGRST202');
 }
 
 export async function submitRemoteCheck(weekId: string, value: number, note = '') {
@@ -131,7 +146,8 @@ export async function finishRemoteTimer(note = '') {
   return String(data);
 }
 
-export function createTargetValue(kind: GoalKind, raw: number) {
+export function createTargetValue(kind: GoalKind, raw: number, unit?: string) {
+  if (unit) return persistTarget(raw, unit);
   return isTimeGoal(kind) ? Math.round(raw * 60) : raw;
 }
 
